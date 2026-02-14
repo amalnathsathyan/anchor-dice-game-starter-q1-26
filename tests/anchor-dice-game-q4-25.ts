@@ -1,16 +1,56 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { AnchorDiceGameQ425 } from "../target/types/anchor_dice_game_q4_25";
+import { randomBytes } from "crypto";
 
 describe("anchor-dice-game-q4-25", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env()
+  anchor.setProvider(provider);
+  const connection = provider.connection;
 
   const program = anchor.workspace.anchorDiceGameQ425 as Program<AnchorDiceGameQ425>;
 
+  let house = anchor.web3.Keypair.generate();
+  let player = anchor.web3.Keypair.generate();
+  let [vault] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("vault"),house.publicKey.toBuffer()],program.programId);
+  let seed = new anchor.BN(randomBytes(16));
+
+  it("Airdrop", async () => {
+    await Promise.all([house,player].map(async (k)=> {
+      await connection.requestAirdrop(k.publicKey,100*anchor.web3.LAMPORTS_PER_SOL)
+    }))
+  })
+
   it("Is initialized!", async () => {
-    // Add your test here.
-    const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
+    const amount = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
+    const initTx = await program.methods
+    .initialize(amount)
+    .accountsStrict({
+      house: house.publicKey,
+      vault: vault,
+      systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([house])
+    .rpc()
+
+    console.log("Init Succesful", initTx);
   });
+  it("places a bet", async() => {
+    
+    const betAmount = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL/100);
+    const [betPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("bet"),vault.toBuffer(),seed.toBuffer("le",16)], program.programId)
+    const betTx = await program.methods.placeBet(seed,50,betAmount)
+    .accountsStrict({
+      player: player.publicKey,
+      house: house.publicKey,
+      vault: vault,
+      bet: betPda,
+      systemProgram: anchor.web3.SystemProgram.programId
+
+    })
+    .signers([player])
+    .rpc()
+    console.log("Bet Succesful", betTx);
+  })
 });

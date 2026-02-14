@@ -8,8 +8,8 @@ addon "svm" {
 }
 
 action "deploy_anchor_dice_game_q_4_25" "svm::deploy_program" {
-    description = "Deploy anchor_dice_game_q_4_25 program"
-    program = svm::get_program_from_anchor_project("anchor_dice_game_q_4_25") 
+    description = "Deploy anchor_dice_game_q4_25 program"
+    program = svm::get_program_from_anchor_project("anchor_dice_game_q4_25") 
     authority = signer.authority
     payer = signer.payer
     // Optional: if you want to deploy the program via a cheatcode when targeting a Surfnet, set `instant_surfnet_deployment = true`
