@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { AnchorDiceGameQ425 } from "../target/types/anchor_dice_game_q4_25";
 import { randomBytes } from "crypto";
-import { text } from "stream/consumers";
+import { SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
 
 describe("anchor-dice-game-q4-25", () => {
   // Configure the client to use the local cluster.
@@ -70,8 +70,8 @@ describe("anchor-dice-game-q4-25", () => {
       player: player.publicKey,
       vault,
       bet,
-      instructionSysvar: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
-      systemProgram: program.programId
+      instructionSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
+      systemProgram: anchor.web3.SystemProgram.programId
     })
     .signers([house])
     .instruction();
@@ -92,7 +92,7 @@ describe("anchor-dice-game-q4-25", () => {
       house:house.publicKey,
       vault:vault,
       bet: bet,
-      systemProgram: anchor.web3.SystemProgram.programId
+      systemProgram:anchor.web3.SystemProgram.programId
     })
     .signers([player])
     .rpc()

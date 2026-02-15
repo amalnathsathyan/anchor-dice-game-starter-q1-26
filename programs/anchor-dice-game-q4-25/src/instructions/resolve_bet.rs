@@ -4,8 +4,7 @@ use anchor_lang::{
     system_program::{transfer, Transfer},
 };
 use solana_program::{
-    ed25519_program, hash::hash,
-    sysvar::instructions::load_instruction_at_checked,
+    ed25519_program, hash::hash, sysvar::instructions::load_instruction_at_checked,
 };
 
 use crate::{errors::DiceError, Bet};
@@ -110,11 +109,15 @@ impl<'info> ResolveBet<'info> {
         let roll = lower.wrapping_add(upper).wrapping_rem(100) as u8 + 1;
         if self.bet.roll > roll {
             let payout = (self.bet.amount as u128)
-                .checked_mul(10000 - HOUSE_EDGE as u128).ok_or(DiceError::Overflow)?
-                .checked_div(self.bet.roll as u128 - 1).ok_or(DiceError::Overflow)?
-                .checked_div(100).ok_or(DiceError::Overflow)?;
+                .checked_mul(10000 - HOUSE_EDGE as u128)
+                .ok_or(DiceError::Overflow)?
+                .checked_div(self.bet.roll as u128 - 1)
+                .ok_or(DiceError::Overflow)?
+                .checked_div(100)
+                .ok_or(DiceError::Overflow)?;
 
-            let signer_seeds: &[&[&[u8]]] = &[&[b"vault", &self.house.key().to_bytes(),&[bumps.vault]]];
+            let signer_seeds: &[&[&[u8]]] =
+                &[&[b"vault", &self.house.key().to_bytes(), &[bumps.vault]]];
 
             let transfer_accounts = Transfer {
                 from: self.vault.to_account_info(),
